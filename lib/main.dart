@@ -3,10 +3,12 @@ import 'package:projetctv0/Providers/easyanswerprovider.dart';
 import 'package:projetctv0/Providers/getquestionsprovider.dart';
 import 'package:projetctv0/Providers/mcqanswerprovider.dart';
 import 'package:projetctv0/Providers/numattempsprovider.dart';
+import 'package:projetctv0/Providers/roleprovider.dart';
 import 'package:projetctv0/Providers/shortanswerprovider.dart';
 import 'package:projetctv0/Providers/truefalseprovider.dart';
 import 'package:projetctv0/examlist.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'package:projetctv0/login.dart';
 import 'package:provider/provider.dart';
 
 void main() async {
@@ -40,6 +42,9 @@ void main() async {
         ChangeNotifierProvider(
           create: (context) => Numattempsprovider(),
         ),
+        ChangeNotifierProvider(
+          create: (context) => Roleprovider(),
+        ),
       ],
       child: const MainApp(),
     ),
@@ -51,6 +56,11 @@ class MainApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Examlist();
+    return MaterialApp(
+      debugShowCheckedModeBanner: false,
+      home: Login(),
+    );
+
+    //return Examlist();
   }
 }

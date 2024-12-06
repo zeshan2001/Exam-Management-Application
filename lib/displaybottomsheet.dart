@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:projetctv0/CreateExamPage.dart';
 import 'package:projetctv0/Providers/getquestionsprovider.dart';
 import 'package:projetctv0/examquestion.dart';
-import 'package:projetctv0/firestoreservices.dart';
 
 import 'package:provider/provider.dart';
 
@@ -51,6 +50,9 @@ class _DisplaybottomsheetState extends State<Displaybottomsheet> {
 
   @override
   Widget build(BuildContext context) {
+    // context
+    //     .read<TimerProvider>()
+    //     .getsec(Exam().timerSeconds(getendtDate(), getstartDate()));
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 50),
       height: 350,
@@ -91,21 +93,19 @@ class _DisplaybottomsheetState extends State<Displaybottomsheet> {
               backgroundColor: const Color.fromARGB(255, 122, 147, 147),
             ),
             onPressed: () {
-              //context.read<Numattempsprovider>().getAttempts((getAttempts()));
-              FirestoreService()
-                  .deleteuseranswers(getExamDocID())
-                  .whenComplete(() {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => Examquestion(
-                      examdocid: getExamDocID(),
-                      maxattempts: getAttempts(),
-                      questionsList: getRandomOrFixedQuestionsList(),
-                    ),
+              String examdocID = getExamDocID();
+              int attemps = getAttempts();
+              List<dynamic> questions = getRandomOrFixedQuestionsList();
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => Examquestion(
+                    examdocid: examdocID,
+                    maxattempts: attemps,
+                    questionsList: questions,
                   ),
-                );
-              });
+                ),
+              );
             },
             child: const Text(
               "Start Exam",

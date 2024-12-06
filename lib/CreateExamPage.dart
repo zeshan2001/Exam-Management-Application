@@ -467,6 +467,12 @@ class Exam {
     return duration.inMinutes;
   }
 
+  // return duration between start and end DateTime
+  int timerSeconds(DateTime end, DateTime start) {
+    Duration duration = end.difference(start);
+    return duration.inSeconds;
+  }
+
   // return dateTime in 21/6/24, 12:45 PM format
   String newDateFormat(DateTime dateTime) {
     return DateFormat('d/M/yy, h:mm a').format(dateTime);

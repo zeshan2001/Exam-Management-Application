@@ -1,11 +1,12 @@
 import 'dart:async';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:projetctv0/Providers/easyanswerprovider.dart';
 import 'package:projetctv0/Providers/mcqanswerprovider.dart';
 import 'package:projetctv0/Providers/shortanswerprovider.dart';
 import 'package:projetctv0/Providers/truefalseprovider.dart';
-import 'package:projetctv0/examlist.dart';
-import 'package:projetctv0/firestoreservices.dart';
+
 import 'package:projetctv0/questionstype/mcqquestion.dart';
 import 'package:projetctv0/questionstype/truefalsequestion.dart';
 import 'package:projetctv0/questionstype/shortanswerquestion.dart';
@@ -13,7 +14,7 @@ import 'package:projetctv0/questionstype/easyquestion.dart';
 import 'package:provider/provider.dart';
 
 class Examquestion extends StatefulWidget {
-  final List<dynamic> questionsList;
+  final List questionsList;
   final String examdocid;
   final int maxattempts;
   //final bool isRandomQuestions;
@@ -30,7 +31,8 @@ class Examquestion extends StatefulWidget {
 }
 
 class _ExamquestionState extends State<Examquestion> {
-  List questionIndex = [];
+  // List questionIndex = [];
+  List<Map<String, dynamic>> questionIndex = [];
   Widget getQuestionBasedOnType(
       Map<String, dynamic> individualQuestion, int index) {
     switch (individualQuestion['type']) {
@@ -127,6 +129,8 @@ class _ExamquestionState extends State<Examquestion> {
                   fontSize: 15,
                 ),
                 "Timer: " + formatTime(_totalSeconds),
+                // "Timer: ${context.watch<TimerProvider>().totalSeconds}",
+                // "Timer: ${TimerProvider().formattedTime}",
               ),
             ),
             const SizedBox(height: 30),
@@ -160,40 +164,33 @@ class _ExamquestionState extends State<Examquestion> {
                         vertical: 13, horizontal: 100),
                   ),
                   onPressed: () async {
-                    // //Navigator.pop(context);
-                    // String easy = context.read<Easyanswerprovider>().easyanswer;
-                    // String short =
-                    //     context.read<Shortanswerprovider>().shortanswer;
-                    // bool truefale =
-                    //     context.read<Truefalseprovider>().truefalseanswer;
-                    // String mcq = context.read<Mcqanswerprovider>().mcqanswer;
-                    // print("exam doc id: ${widget.examdocid}");
-                    // print("question index: ${questionIndex}");
-                    // print("short answer: ${short}");
-                    // print("easy answer: ${easy}");
-                    // print("true or false: ${truefale}");
-                    // print("mcq: ${mcq}");
+                    // Collect all data into a single array
+                    List<Map<String, dynamic>> allAnswers =
+                        getSummaryData().map((val) {
+                      return {
+                        'questionText': val['questionText'],
+                        'user_Answers': val['userAnswer'],
+                        'questionType': val['questionType'],
+                      };
+                    }).toList();
 
+                    final ans = answers(
+                        examdocID: widget.examdocid,
+                        uid: FirebaseAuth.instance.currentUser!.uid,
+                        user_answers: allAnswers);
+                    ans.printsum();
                     try {
-                      // Collect all data into a single array
-                      List<Map<String, dynamic>> allAnswers =
-                          getSummaryData().map((val) {
-                        return {
-                          'questionText': val['questionText'],
-                          'user_Answers': val['userAnswer'],
-                          'questionType': val['questionType'],
-                        };
-                      }).toList();
-
-                      // Append all data at once to Firestore
-                      await FirestoreService()
-                          .appendMultipleToArray(widget.examdocid, allAnswers)
-                          .whenComplete(() {
-                        Navigator.push(
-                          context,
-                          MaterialPageRoute(
-                            builder: (context) => Examlist(),
-                          ),
+                      // Save the exam to Firestore
+                      final answersCollection =
+                          FirebaseFirestore.instance.collection('answers');
+                      await answersCollection.add({
+                        'examdocID': ans.examdocID.toString(),
+                        'uid': ans.uid.toString(),
+                        'user_Answers': ans.user_answers,
+                      }).whenComplete(() {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                              content: Text('answers added successfully!')),
                         );
                       });
 
@@ -214,5 +211,30 @@ class _ExamquestionState extends State<Examquestion> {
         ),
       ),
     );
+  }
+}
+
+class answers {
+  final String? uid;
+  final String? examdocID;
+  final List<Map<String, dynamic>>? user_answers;
+
+  answers({
+    this.uid,
+    this.examdocID,
+    this.user_answers,
+  });
+
+  void printsum() {
+    print('uid: $uid');
+    print('examdocID: $examdocID');
+    //print('questions: $questions');
+    for (var answer in user_answers!) {
+      print('..');
+      print('questionType: ${answer['questionType']}');
+      print('questionText: ${answer['questionText']}');
+      print('user_answer: ${answer['user_Answers']}');
+      print('..');
+    }
   }
 }
